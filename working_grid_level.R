@@ -2,7 +2,7 @@ library(raster)
 library(rgeos)
 library(sp)
 library(rgdal)
-
+library(rmapshaper)
 library(adehabitatMA)
 
 #♣setwd("C:/Users/bgobbi/Nextcloud/SFTP/R/INPUTS/2018")
@@ -117,35 +117,16 @@ rc <- reclassify(CHM, rclmat)
 
 #extract for canopy cover
 #canopy cover####################
-canopy<-CHM>5
-
-
+canopy<-rc>5
 #canopy_cover<-(cellStats(canopy,stat="sum")/length(CHM))*100
-
-canop<-extract(canopy,sub_gridspdf,function(x{}))
-cel<-extract(CHM,sub_gridspdf,fun=sum)
-
-canop<-extract(canopy,sub_gridspdf,fun=cellStats(canopy,stat="sum"))
-
-
-
-# get list of individual polys
-p <- lapply(sub_gridspdf@polygons , slot , "Polygons")
-
-# areas of individual polygons
-lapply(p[[2]], function(x) slot(x, "area"))
-
-
-canop<-extract(canopy,sub_gridspdf,function(canopy){sum()/`length<-.factor`()})
-canop<-extract(canopy,sub_gridspdf,function(canopy){
-  sum()
-  return()})
+v <- extract(canopy, sub_gridspdf)
+canopy_cover<-sapply(v, function(x) if (!is.null(x)) { sum(x)/length(x)} else NA)
 
 
 ################high canopy class#############################
 fun1=function(x){x>5}
 poly<-rasterToPolygons(rc, fun1,dissolve=TRUE)
-
+poly
 out<-ms_explode(poly)
 
 
