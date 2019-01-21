@@ -59,7 +59,7 @@ plot(sub_gridspdf)
 # Crop grid selon sub_grispdf
 re<-crop(r, sub_gridspdf)
 
-plot(re)
+
 ############################CORRECTING dem#############################
 
 #USING FIRST PERCENTILE
@@ -90,8 +90,7 @@ sub_gridspdf@data$X2.<- as.numeric(as.character(sub_gridspdf@data$X2.))
 
 #rasterize
 
-
-rp <- rasterize(sub_gridspdf, r, "X2.")
+rp <- rasterize(sub_gridspdf, re, "X2.")
 
 ?rp
 head(rp)
@@ -100,27 +99,16 @@ res(rp)
 
 test<-r-rp
 
-CHM<-overlay(r, rp, fun=function(x,y){return(x-y)})
+CHM<-overlay(re, rp, fun=function(x,y){return(x-y)})
 
+plot(CHM)
 
-
-
-soustraction <- q[] - quantile []
-CHM<-q-list(rep(quantile[[1]],273529),rep(quantile[[1]],273006),rep(quantile[[1]],273006))
-CHM
-quantile
-
-#rasterize
-make.grid(x, y, z, byx , byy , xlim, ylim,  function(x) sum(x, na.rm = T))
 
 
 
 ############################END CORRECTING DEM ########################
 
-r <- raster(ncol=100, nrow=100)
-r[] <- rnorm(ncell(r), 0, 50)
-quantile(r)
-quantile(r, probs = c(0.25, 0.75), type=7,names = FALSE)
+
 
 #################classes#################
 m2 <- c(-20, 0.5, 1, 0.5, 1,2,1,2,3,2,4,4,  4, 6,5,6,20,6)
@@ -130,15 +118,16 @@ rc <- reclassify(CHM, rclmat)
 #extract for canopy cover
 #canopy cover####################
 canopy<-CHM>5
-canopy_cover<-(cellStats(canopy,stat="sum")/length(CHM))*100
 
-canop<-extract(canopy,sub_gridspdf,fun=sum)
 
+#canopy_cover<-(cellStats(canopy,stat="sum")/length(CHM))*100
+
+canop<-extract(canopy,sub_gridspdf,function(x{}))
 cel<-extract(CHM,sub_gridspdf,fun=sum)
 
 canop<-extract(canopy,sub_gridspdf,fun=cellStats(canopy,stat="sum"))
 
-??cellStats
+
 
 # get list of individual polys
 p <- lapply(sub_gridspdf@polygons , slot , "Polygons")
