@@ -6,8 +6,8 @@ library(rgdal)
 library(adehabitatMA)
 
 #♣setwd("C:/Users/bgobbi/Nextcloud/SFTP/R/INPUTS/2018")
-setwd("F:/results_agisoft/proj_results")
-set
+##setwd("F:/results_agisoft/proj_results")
+
 list.files()
 r<-raster("180912_10.tif")
 crs(r)
@@ -16,7 +16,7 @@ crs(r)
 
 test<-bbox(r)
 class(test)
-x <- seq(from = test[[1]], test[[3]], by =35)
+x <- seq(from = test[[1]], test[[3]], by =3)
 y <- seq(test[[2]], test[[4]], by = 35)
 
 xy <- expand.grid(x = x, y = y)
@@ -55,42 +55,56 @@ sub_gridspdf<-gridspdf[which(gridspdf@data$id == "g300" | gridspdf@data$id == "g
 sub_gridspdf
 plot(sub_gridspdf)
 
+
+# Crop grid selon sub_grispdf
+re<-crop(r, sub_gridspdf)
+
+plot(re)
 ############################CORRECTING dem#############################
 
 #USING FIRST PERCENTILE
-plot(r)
+plot(re)
 plot(sub_gridspdf, add=TRUE)
-q<-extract(r,sub_gridspdf,na.rm=TRUE)
 
-quantile<-lapply(q, function(x) if (!is.null(x)) quantile(x, c(.015), na.rm=TRUE) else NA )
+#creates lists of values raster from spdf
+#q<-extract(r,sub_gridspdf,na.rm=TRUE)
+#qdat<-as.data.frame(q)
+
+
+#quantile de chaque case
+
+quantile<-lapply(q, function(x) if (!is.null(x)) quantile(x, c(.02), na.rm=TRUE) else NA )
+quantile
 DT <-as.data.frame(quantile)
-colnames(DT)<-c("g300", "g301", "g302")
+colnames(DT)<-sub_gridspdf@data$id
+col<-colnames(DT)
 dim(DT)
+tDT<-t(DT)
+sub_gridspdf<-cbind(sub_gridspdf, tDT)
+merge<-merge(sub_gridspdf,DT, by.x=sub_gridspdf@data$id, by.y=DT)
+DT
+head(sub_gridspdf)
 
 
-r2<-r
-r2<-1
-rst1_mod <- overlay(rst1, rst2, fun = function(x, y) {
-  x[!is.na(y[])] <- NA
-  return(x)
-})
+sub_gridspdf@data$X2.<- as.numeric(as.character(sub_gridspdf@data$X2.))
 
-y<-lapply(quantile, unname)
+#rasterize
 
-rp <- rasterize(sub_gridspdf, r, sub_gridspdf@data$id)
+
+rp <- rasterize(sub_gridspdf, r, "X2.")
+
+?rp
+head(rp)
+summary(rp)
 res(rp)
 
+test<-r-rp
+
+CHM<-overlay(r, rp, fun=function(x,y){return(x-y)})
 
 
-for (i in length(q())) {
-  for (j in length(q[[i]]) ){
-    mylist[[i]][j]<-q[[i]][j]-y[[i]][i]
-  }
-  mylist[[i]]<-mylist
-}
-lapply q[i]-y[i]
 
-franck
+
 soustraction <- q[] - quantile []
 CHM<-q-list(rep(quantile[[1]],273529),rep(quantile[[1]],273006),rep(quantile[[1]],273006))
 CHM
@@ -99,7 +113,7 @@ quantile
 #rasterize
 make.grid(x, y, z, byx , byy , xlim, ylim,  function(x) sum(x, na.rm = T))
 
-polyg<-rasterize(sub_gridspdf, r, field, fun='last', background=NA, mask=FALSE, update=FALSE, updateValue='all', filename="", na.rm=TRUE, ...)
+
 
 ############################END CORRECTING DEM ########################
 
