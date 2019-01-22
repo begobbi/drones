@@ -4,7 +4,8 @@ library(sp)
 library(rgdal)
 library(rmapshaper)
 library(adehabitatMA)
-
+library(maptools) 
+library(plyr)
 #♣setwd("C:/Users/bgobbi/Nextcloud/SFTP/R/INPUTS/2018")
 ##setwd("F:/results_agisoft/proj_results")
 
@@ -123,17 +124,32 @@ v <- extract(canopy, sub_gridspdf)
 canopy_cover<-sapply(v, function(x) if (!is.null(x)) { sum(x)/length(x)} else NA)
 
 
-################high canopy class#############################
+##density
 fun1=function(x){x>5}
 poly<-rasterToPolygons(rc, fun1,dissolve=TRUE)
-poly
-out<-ms_explode(poly)
+plot(poly)
+p<-disaggregate(poly)
+
+# where each patch is located 
+
+patches_location <- over(x =p , y = sub_gridspdf)
+
+patches_with_location <- spCbind(p, patches_location)
+patches_with_location@data$area<-gArea(patches_with_location,byid = TRUE )
+
+cdata <- ddply(patches_with_location@data,"id", summarise, N    = length(layer),A=sum(area))
+sub_gridspdf@data$area<-gArea(sub_gridspdf,byid = TRUE)
+density<-cdata[3]/sub_gridspdf@data$area
+
+#mean height  - value  The order of the returned values corresponds to the order of object y. If df=TRUE, this is also indicated in the ﬁrst variable (’ID’).
+
+CHM_in_patches <- extract(CHM, p)
+max_perunit <-sapply(CHM_in_patches, function(x) if (!is.null(x)) { max(x)} else NA)
+
+max_spdf <- spCbind(patches_with_location, max_perunit)
+  
+
+mean_max <- ddply(max_spdf@data,"id", summarise,max = max(max_perunit))
 
 
-
-# density of patches 
-density_high_canopy<-(nrow(out@data))
-#mean height 
-zonal<-zonal.stats(out,CHM,max )
-mean_max_height<-mean(zonal)
 
